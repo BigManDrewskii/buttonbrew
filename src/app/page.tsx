@@ -5,17 +5,37 @@ import { Button } from "./components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "./components/ui/card"
 import { Input } from "@/app/components/ui/input"
 import { Label } from "@/app/components/ui/label"
-import { SunIcon, MoonIcon, AlertCircle, XIcon } from 'lucide-react'
+import { SunIcon, MoonIcon, AlertCircle, XIcon, CopyIcon, CheckIcon } from 'lucide-react'
 import { useTheme } from "next-themes"
 import { Alert, AlertDescription, AlertTitle } from "@/app/components/ui/alert"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/app/components/ui/tooltip"
 import Image from 'next/image'
 import ButtonBrewLogo from './components/ui/ButtonBrewLogo'
+import dynamic from 'next/dynamic'
+import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
+
+const SyntaxHighlighter = dynamic(
+  () => import('react-syntax-highlighter').then((mod) => mod.Prism),
+  { ssr: false }
+)
 
 interface CustomFont {
   name: string;
   url: string;
 }
+
+// Define a simpler set of fonts
+const fonts = [
+  'Arial, sans-serif',
+  'Helvetica, sans-serif',
+  'Georgia, serif',
+  'Times New Roman, serif',
+  'Courier New, monospace',
+  'Verdana, sans-serif',
+  'Trebuchet MS, sans-serif',
+  'Arial Black, sans-serif',
+  'Impact, sans-serif'
+];
 
 export default function Home() {
   const [generatedCSS, setGeneratedCSS] = useState('')
@@ -24,92 +44,72 @@ export default function Home() {
   const [customFont, setCustomFont] = useState<CustomFont | null>(null)
   const [fontError, setFontError] = useState<string | null>(null)
   const [buttonText, setButtonText] = useState("Button")
+  const [isCopied, setIsCopied] = useState(false);
 
   const generateButtonStyle = useCallback(() => {
+    // Accessibility-friendly color combinations
     const colors = [
-      { light: { bg: '#007AFF', text: '#FFFFFF' }, dark: { bg: '#0A84FF', text: '#FFFFFF' } },
-      { light: { bg: '#34C759', text: '#FFFFFF' }, dark: { bg: '#30D158', text: '#FFFFFF' } },
-      { light: { bg: '#FF9500', text: '#000000' }, dark: { bg: '#FF9F0A', text: '#000000' } },
-      { light: { bg: '#FF3B30', text: '#FFFFFF' }, dark: { bg: '#FF453A', text: '#FFFFFF' } },
-      { light: { bg: '#5856D6', text: '#FFFFFF' }, dark: { bg: '#5E5CE6', text: '#FFFFFF' } },
-      { light: { bg: '#FFFFFF', text: '#000000' }, dark: { bg: '#1C1C1E', text: '#FFFFFF' } },
-      { light: { bg: '#FF2D55', text: '#FFFFFF' }, dark: { bg: '#FF375F', text: '#FFFFFF' } },
-      { light: { bg: '#5AC8FA', text: '#000000' }, dark: { bg: '#64D2FF', text: '#000000' } },
-      { light: { bg: '#FFCC00', text: '#000000' }, dark: { bg: '#FFD60A', text: '#000000' } },
-      { light: { bg: '#4CD964', text: '#000000' }, dark: { bg: '#32D74B', text: '#000000' } },
-    ]
+      { bg: '#0056b3', text: '#ffffff' }, // Dark blue & white
+      { bg: '#28a745', text: '#ffffff' }, // Green & white
+      { bg: '#6c757d', text: '#ffffff' }, // Gray & white
+      { bg: '#ffc107', text: '#000000' }, // Yellow & black
+      { bg: '#17a2b8', text: '#ffffff' }, // Teal & white
+      { bg: '#dc3545', text: '#ffffff' }, // Red & white
+      { bg: '#f8f9fa', text: '#000000' }, // Light gray & black
+      { bg: '#343a40', text: '#ffffff' }, // Dark gray & white
+    ];
 
-    const fonts = [
-      'var(--font-geist-sans)',
-      'var(--font-geist-mono)',
-      'var(--font-inter)',
-      'var(--font-roboto-mono)',
-      'var(--font-playfair)',
-      'var(--font-oswald)',
-      'var(--font-lato)',
-    ]
+    const selectedColor = colors[Math.floor(Math.random() * colors.length)];
+    const bgColor = selectedColor.bg;
+    const textColor = selectedColor.text;
+    const selectedFont = customFont ? 'CustomFont' : fonts[Math.floor(Math.random() * fonts.length)];
+    
+    // Adjust padding for larger (lg) buttons
+    const paddingV = `${Math.floor(Math.random() * 4) + 12}px`;
+    const paddingH = `${Math.floor(Math.random() * 8) + 24}px`;
+    const borderRadius = `${Math.floor(Math.random() * 12) + 6}px`;
+    
+    // Increase font size for larger buttons
+    const fontSize = `${Math.floor(Math.random() * 4) + 18}px`;
+    const fontWeight = Math.random() > 0.5 ? 400 : 700;
 
-    const selectedColor = colors[Math.floor(Math.random() * colors.length)]
-    const selectedFont = customFont ? 'CustomFont, ' + fonts[0] : fonts[Math.floor(Math.random() * fonts.length)]
-    const paddingV = `${Math.floor(Math.random() * 12) + 8}px`
-    const paddingH = `${Math.floor(Math.random() * 24) + 16}px`
-    const borderRadius = `${Math.floor(Math.random() * 25) + 4}px`
-    const fontSize = `${Math.floor(Math.random() * 8) + 14}px`
-    const fontWeight = Math.floor(Math.random() * 5) * 100 + 300 // 300, 400, 500, 600, or 700
+    // Gradient and stroke options
+    const useGradient = Math.random() > 0.7;
+    const useStroke = Math.random() > 0.7;
 
-    const backgroundStyles = [
-      { type: 'solid', style: (color: string) => color },
-      { type: 'gradient', style: (color: string) => {
-        const angle = Math.floor(Math.random() * 360);
-        return `linear-gradient(${angle}deg, ${color}, ${adjustColor(color, 40)})`;
-      }},
-    ]
+    let gradient = '';
+    if (useGradient) {
+      const gradientColor = adjustColor(bgColor, Math.random() > 0.5 ? 30 : -30);
+      gradient = `linear-gradient(45deg, ${bgColor}, ${gradientColor})`;
+    }
 
-    const borderStyles = [
-      { type: 'none', style: () => 'none' },
-      { type: 'solid', style: (color: string) => `2px solid ${color}` },
-      { type: 'dashed', style: (color: string) => `2px dashed ${color}` },
-      { type: 'double', style: (color: string) => `4px double ${color}` },
-      { type: 'inset', style: (color: string) => `4px inset ${color}` },
-      { type: 'outset', style: (color: string) => `4px outset ${color}` },
-      { type: 'gradient', style: (color: string) => {
-        const angle = Math.floor(Math.random() * 360);
-        return `linear-gradient(${angle}deg, ${color}, ${adjustColor(color, 40)})`;
-      }},
-    ]
-
-    const selectedBackground = backgroundStyles[Math.floor(Math.random() * backgroundStyles.length)]
-    const selectedBorder = borderStyles[Math.floor(Math.random() * borderStyles.length)]
-    const bgColor = theme === 'dark' ? selectedColor.dark.bg : selectedColor.light.bg
-    const textColor = theme === 'dark' ? selectedColor.dark.text : selectedColor.light.text
+    let stroke = '';
+    if (useStroke) {
+      const strokeColor = adjustColor(textColor, -30);
+      stroke = `1px solid ${strokeColor}`;
+    }
 
     const style: React.CSSProperties = {
-      background: selectedBackground.style(bgColor),
+      backgroundColor: useGradient ? 'transparent' : bgColor,
+      backgroundImage: gradient,
       color: textColor,
       padding: `${paddingV} ${paddingH}`,
       borderRadius,
       fontSize,
       fontFamily: selectedFont,
       fontWeight,
-      border: selectedBorder.style(adjustColor(bgColor, -30)),
+      border: stroke || 'none',
       cursor: 'pointer',
       transition: 'all 0.2s ease-in-out',
-      boxShadow: `0 ${Math.floor(Math.random() * 4) + 2}px ${Math.floor(Math.random() * 8) + 4}px rgba(0,0,0,${Math.random() * 0.2 + 0.1})`,
-      textTransform: Math.random() > 0.5 ? 'uppercase' : 'none',
-      letterSpacing: Math.random() > 0.5 ? `${Math.random() * 2}px` : 'normal',
+      boxShadow: `0 2px 4px rgba(0,0,0,0.1)`,
+      textTransform: 'none',
+      letterSpacing: 'normal',
       position: 'relative',
       zIndex: 10,
-      backgroundColor: bgColor, // Ensure an opaque background
-    }
+      outline: 'none',
+    };
 
-    // For gradient border
-    if (selectedBorder.type === 'gradient') {
-      style.backgroundImage = `linear-gradient(${bgColor}, ${bgColor}), linear-gradient(${Math.floor(Math.random() * 360)}deg, ${adjustColor(bgColor, -30)}, ${adjustColor(bgColor, 30)})`;
-      style.backgroundOrigin = 'border-box';
-      style.backgroundClip = 'content-box, border-box';
-    }
-
-    setGeneratedButtonStyle(style)
+    setGeneratedButtonStyle(style);
 
     const css = `
 ${customFont ? `@font-face {
@@ -119,51 +119,53 @@ ${customFont ? `@font-face {
 }` : ''}
 
 .button {
-  background: ${style.background};
+  background-color: ${useGradient ? 'transparent' : style.backgroundColor};
+  background-image: ${gradient || 'none'};
   color: ${style.color};
   padding: ${style.padding};
   border-radius: ${style.borderRadius};
   font-size: ${style.fontSize};
   font-family: ${style.fontFamily};
   font-weight: ${style.fontWeight};
-  border: ${style.border};
+  border: ${stroke || 'none'};
   cursor: pointer;
   transition: all 0.2s ease-in-out;
   box-shadow: ${style.boxShadow};
-  text-transform: ${style.textTransform};
-  letter-spacing: ${style.letterSpacing};
   position: relative;
   z-index: 10;
-  background-color: ${style.backgroundColor};
-  ${selectedBorder.type === 'gradient' ? `
-  background-image: ${style.backgroundImage};
-  background-origin: border-box;
-  background-clip: content-box, border-box;
-  ` : ''}
+  outline: none;
 }
 
 .button:hover {
   opacity: 0.9;
   transform: translateY(-2px);
-  box-shadow: ${style.boxShadow ? `0 ${parseInt(style.boxShadow.split('px')[1] || '0') + 2}px ${parseInt(style.boxShadow.split('px')[2] || '0') + 2}px rgba(0,0,0,${parseFloat(style.boxShadow.split('rgba(0,0,0,')[1] || '0') + 0.05})` : 'none'};
+  box-shadow: 0 4px 6px rgba(0,0,0,0.15);
 }
 
 .button:active {
   transform: translateY(1px);
-  box-shadow: ${style.boxShadow ? `0 ${Math.max(parseInt(style.boxShadow.split('px')[1] || '0') - 1, 1)}px ${Math.max(parseInt(style.boxShadow.split('px')[2] || '0') - 2, 2)}px rgba(0,0,0,${Math.max(parseFloat(style.boxShadow.split('rgba(0,0,0,')[1] || '0') - 0.05, 0.05)})` : 'none'};
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .button:focus {
   outline: none;
-  box-shadow: 0 0 0 3px ${adjustColor(bgColor, theme === 'dark' ? 60 : -60)};
+  box-shadow: 0 0 0 3px ${adjustColor(bgColor, -20)};
 }
-`
-    setGeneratedCSS(css)
-  }, [theme, customFont])
+
+/* High contrast outline for Windows High Contrast Mode */
+@media screen and (-ms-high-contrast: active) {
+  .button:focus {
+    outline: 2px solid currentColor;
+  }
+}
+`;
+
+    setGeneratedCSS(css);
+  }, [customFont]);
 
   useEffect(() => {
-    generateButtonStyle()
-  }, [generateButtonStyle])
+    generateButtonStyle();
+  }, [generateButtonStyle]);
 
   // Helper function to adjust color brightness
   function adjustColor(color: string, amount: number): string {
@@ -171,7 +173,9 @@ ${customFont ? `@font-face {
   }
 
   const copyCSS = () => {
-    navigator.clipboard.writeText(generatedCSS)
+    navigator.clipboard.writeText(generatedCSS);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
   }
 
   const downloadCSS = () => {
@@ -288,13 +292,26 @@ ${customFont ? `@font-face {
             </CardHeader>
             <CardContent>
               <div 
-                className="bg-muted rounded p-4 font-mono text-sm overflow-auto h-48"
+                className="rounded overflow-hidden"
                 tabIndex={0}
                 aria-label="Generated CSS code"
               >
-                <pre className="text-muted-foreground">
-                  {generatedCSS}
-                </pre>
+                {SyntaxHighlighter && (
+                  <SyntaxHighlighter 
+                    language="css" 
+                    style={tomorrow}
+                    customStyle={{
+                      margin: 0,
+                      padding: '1rem',
+                      fontSize: '0.875rem',
+                      lineHeight: '1.5',
+                      maxHeight: '200px',
+                      overflowY: 'auto'
+                    }}
+                  >
+                    {generatedCSS}
+                  </SyntaxHighlighter>
+                )}
               </div>
             </CardContent>
             <CardFooter className="flex justify-end space-x-4">
@@ -303,7 +320,7 @@ ${customFont ? `@font-face {
                 onClick={copyCSS}
                 aria-label="Copy CSS code to clipboard"
               >
-                Copy CSS
+                {isCopied ? "Copied!" : "Copy CSS"}
               </Button>
               <Button 
                 variant="outline" 

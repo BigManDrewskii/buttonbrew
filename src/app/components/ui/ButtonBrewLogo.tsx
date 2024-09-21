@@ -8,7 +8,7 @@ interface ButtonBrewLogoProps {
 const ButtonBrewLogo: React.FC<ButtonBrewLogoProps> = ({ className }) => {
   const { resolvedTheme } = useTheme();
 
-  const fillColor = resolvedTheme === 'dark' ? 'white' : 'black';
+  const fillColor = resolvedTheme === 'light' ? 'black' : 'white';
 
   return (
     <svg width="226" height="31" viewBox="0 0 226 31" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>

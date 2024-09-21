@@ -5,7 +5,7 @@ import { Button } from "./components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "./components/ui/card"
 import { Input } from "@/app/components/ui/input"
 import { Label } from "@/app/components/ui/label"
-import { SunIcon, MoonIcon, AlertCircle, XIcon, CopyIcon, CheckIcon } from 'lucide-react'
+import { SunIcon, MoonIcon, AlertCircle, XIcon } from 'lucide-react'
 import { useTheme } from "next-themes"
 import { Alert, AlertDescription, AlertTitle } from "@/app/components/ui/alert"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/app/components/ui/tooltip"
